@@ -116,25 +116,32 @@ function displayPriceMap(arrayOfObjects) {
 }
 
 const minusButtons = document.querySelectorAll(".minusButton");
-const plusButtons = document.querySelectorAll(".plusButton");
+  const plusButtons = document.querySelectorAll(".plusButton");
 
-minusButtons.forEach(button => {
-button.addEventListener("click", () => {
-  const input = button.id;
-  if (dS[input] > 0) {
-    dS[input]--
-    priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3])
-    calculate()
-  }
-});
-});
+  minusButtons.forEach(button => {
+    const id = parseInt(button.id);
+    button.addEventListener("click", () => handleMinus(id));
+    button.addEventListener("touchstart", () => handleMinus(id));
+  });
 
-plusButtons.forEach(button => {
-button.addEventListener("click", () => {
-  const input = button.id;
-    dS[input]++
-    priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3])
-    calculate()
-});
-});
+  plusButtons.forEach(button => {
+    const id = parseInt(button.id);
+    button.addEventListener("click", () => handlePlus(id));
+    button.addEventListener("touchstart", () => handlePlus(id));
+  });
+
+  const handleMinus = (i) => {
+    if (dS[i] > 0) {
+      dS[i]--;
+      priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
+      calculate();
+    }
+  };
+
+  const handlePlus = (i) => {
+    dS[i]++;
+    priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
+    calculate();
+  };
+
 
