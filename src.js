@@ -92,17 +92,27 @@ function displayPriceMap(arrayOfObjects) {
         var item = arrayOfObjects[i];
         var itemQTY = item.sold;
         var itemTotalValue = item.price * item.sold;
-        var itemText = item.qty + "-PACK " + 
-                    "min_" + dS[i]  + 
-                    " TOTAL_" + itemQTY  + 
-                    " $" + itemTotalValue; // Format to two decimal places
+
+        var itemText = item.qty + "-PACK "
+        
+        var unitText = "set_min: " + dS[i] + " UNIT_TOTAL: " + itemQTY
+        var totalValue = "$" + itemTotalValue; // Format to two decimal places
         
         var itemElement = document.createElement("div");
         itemElement.classList.add("mb-3", "p-3", "bg-light", "rounded"); // Bootstrap classes
         
-        var resultText = document.createElement("p");
-        resultText.textContent = itemText;
-        itemElement.appendChild(resultText);
+        var resultItemText = document.createElement("p");
+        resultItemText.textContent = itemText;
+        itemElement.appendChild(resultItemText);
+
+        var resultUnitText = document.createElement("p");
+        resultUnitText.textContent = unitText;
+        itemElement.appendChild(resultUnitText);
+
+        var resultValueText = document.createElement("h4");
+        resultValueText.textContent = totalValue;
+        itemElement.appendChild(resultValueText);
+
 
         var buttonsContainer = document.createElement("div");
         buttonsContainer.classList.add("d-flex", "justify-content-between", "align-items-center");
@@ -142,34 +152,47 @@ function displayPriceMap(arrayOfObjects) {
 
 
 
-function buttonEvents(){
+function buttonEvents() {
+    const handleMinus = (i) => {
+        if (dS[i] > 0) {
+            dS[i]--;
+            priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
+            calculate();
+        }
+    };
+
+    const handlePlus = (i) => {
+        dS[i]++;
+        priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
+        calculate();
+    };
+
     const minusButtons = document.querySelectorAll(".minusButton");
     const plusButtons = document.querySelectorAll(".plusButton");
 
     minusButtons.forEach(button => {
-      const id = parseInt(button.id);
-      button.addEventListener("mousedown", () => handleMinus(id)); // For desktop
-      button.addEventListener("touchstart", () => handleMinus(id)); // For touchscreen devices
+        const id = parseInt(button.id);
+        button.addEventListener("click", () => handleMinus(id));
+        button.addEventListener("touchstart", (event) => {
+            event.preventDefault(); // Prevent default touch behavior
+            handleMinus(id);
+        });
+        button.addEventListener("touchend", (event) => {
+            event.preventDefault(); // Prevent default touch behavior
+        });
     });
 
     plusButtons.forEach(button => {
-      const id = parseInt(button.id);
-      button.addEventListener("mousedown", () => handlePlus(id)); // For desktop
-      button.addEventListener("touchstart", () => handlePlus(id)); // For touchscreen devices
+        const id = parseInt(button.id);
+        button.addEventListener("click", () => handlePlus(id));
+        button.addEventListener("touchstart", (event) => {
+            event.preventDefault(); // Prevent default touch behavior
+            handlePlus(id);
+        });
+        button.addEventListener("touchend", (event) => {
+            event.preventDefault(); // Prevent default touch behavior
+        });
     });
-
-    const handleMinus = (i) => {
-      if (dS[i] > 0) {
-        dS[i]--;
-        priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
-        calculate();
-      }
-    };
-
-    const handlePlus = (i) => {
-      dS[i]++;
-      priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
-      calculate();
-    };
 }
+
 
