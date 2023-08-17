@@ -3,51 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Value Splitter</title>
+  <title>Pack Estimator</title>
+  <!-- Include Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-  <h1>Value Splitter</h1>
-  
-  <label for="valueUSD">Max Value (USD):</label>
-  <input type="number" id="valueUSD" value="1000">
-  <br/>
-  <br/>
-  
-  <!--<label for="organicSold">Organic Flats Sold:</label>
-  <input type="number" id="organicSold" value="25">
-  <br/>
-  <br/>-->
+  <div class="container mt-5">
+    <h1 class="text-center">Pack Estimator</h1>
+    
+    <div class="mb-3">
+      <label for="valueUSD" class="form-label">Max Value (USD):</label>
+      <input type="number" class="form-control" id="valueUSD" value="1000">
+    </div>
+    
+    <div class="mb-3">
+      <div class="input-container">
+        <label for="packPrice1" class="form-label">1-Pack</label>
+        <input type="number" class="form-control" id="packPrice1" value="5">
+      </div>
+    </div>
 
-  <label for="packPrice1">1-Pack $</label>
-  <input type="number" id="packPrice1" value="5">
-  <button id="0" class="minusButton">-</button>
-  <button id="0" class="plusButton">+</button>
-  <br/>
+    <div class="mb-3">
+      <div class="input-container">
+        <label for="packPrice2" class="form-label">2-Pack</label>
+        <input type="number" class="form-control" id="packPrice2" value="9">
+      </div>
+    </div>
 
-  <label for="packPrice2">2-Pack $</label>
-  <input type="number" id="packPrice2" value="9">
-  <button id="1" class="minusButton">-</button>
-  <button id="1" class="plusButton">+</button>
-  <br/>
+    <div class="mb-3">
+      <div class="input-container">
+        <label for="packPrice4" class="form-label">4-Pack</label>
+        <input type="number" class="form-control" id="packPrice4" value="16">
+      </div>
+    </div>
 
-  <label for="packPrice4">4-Pack $</label>
-  <input type="number" id="packPrice4" value="16">
-  <button id="2" class="minusButton">-</button>
-  <button id="2" class="plusButton">+</button>
-  <br/>
+    <div class="mb-3">
+      <div class="input-container">
+        <label for="packPrice6" class="form-label">6-Pack</label>
+        <input type="USD" class="form-control" id="packPrice6" value="22">
+      </div>
+    </div>
+    
+    <button id="generate" class="btn btn-primary">Generate</button>
+    
+    <div id="resultContainer" class="mt-4 text-center"></div>
+  </div>
 
-  <label for="packPrice6">6-Pack $</label>
-  <input type="number" id="packPrice6" value="22">
-  <button id="3" class="minusButton">-</button>
-  <button id="3" class="plusButton">+</button>
-  <br/>
-  <br/>
-  
-  <button id="generate">Generate</button>
-  <br/>
-  <br/>
-  
-  <div id="resultContainer"></div>
+  <!-- Include Bootstrap JS (optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script src="src.js"></script>
 </body>

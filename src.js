@@ -90,22 +90,45 @@ function displayPriceMap(arrayOfObjects) {
 
     for (var i = 0; i < arrayOfObjects.length; i++) {
         var item = arrayOfObjects[i];
-        var itemQTY = item.sold
-        var itemTotalValue = item.price * item.sold
+        var itemQTY = item.sold;
+        var itemTotalValue = item.price * item.sold;
         var itemText = item.qty + "-PACK " + 
-                    "min_[ " + dS[i]  + " ] " +
-                    "TOTAL_[ " + itemQTY  + " ] " +
-                    "$" + itemTotalValue; // Format to two decimal places
-        var itemElement = document.createElement("p");
-        itemElement.textContent = itemText;
+                    "min_" + dS[i]  + 
+                    " TOTAL_" + itemQTY  + 
+                    " $" + itemTotalValue; // Format to two decimal places
+        
+        var itemElement = document.createElement("div");
+        itemElement.classList.add("mb-3", "p-3", "bg-light", "rounded"); // Bootstrap classes
+        
+        var resultText = document.createElement("p");
+        resultText.textContent = itemText;
+        itemElement.appendChild(resultText);
+
+        var buttonsContainer = document.createElement("div");
+        buttonsContainer.classList.add("d-flex", "justify-content-between", "align-items-center");
+        
+        var minusButton = document.createElement("button");
+        minusButton.textContent = "-";
+        minusButton.classList.add("btn", "btn-danger", "minusButton");
+        minusButton.id = i.toString();
+        buttonsContainer.appendChild(minusButton);
+        
+        var plusButton = document.createElement("button");
+        plusButton.textContent = "+";
+        plusButton.classList.add("btn", "btn-success", "plusButton");
+        plusButton.id = i.toString();
+        buttonsContainer.appendChild(plusButton);
+
+        itemElement.appendChild(buttonsContainer);
         resultContainer.appendChild(itemElement);
 
         totalPacksSold += Number(item.sold * item.qty / 6);
     }
 
     var totalText = "Total 1/2 Flats Sold: " + totalPacksSold.toFixed(2) 
-                  + ", Total Value: $" + sumPriceMap().toFixed(2); // Format to two decimal places
+                  + ", Total Value: $" + sumPriceMap().toFixed(2);
     var totalElement = document.createElement("p");
+    totalElement.classList.add("mt-4"); // Add margin top
     totalElement.textContent = totalText;
     resultContainer.appendChild(totalElement);
 
@@ -113,35 +136,40 @@ function displayPriceMap(arrayOfObjects) {
     for (var i = 0; i < arrayOfObjects.length; i++) {
         arrayOfObjects[i].sold = 0;
     }
+
+    buttonEvents();
 }
 
-const minusButtons = document.querySelectorAll(".minusButton");
-  const plusButtons = document.querySelectorAll(".plusButton");
 
-  minusButtons.forEach(button => {
-    const id = parseInt(button.id);
-    button.addEventListener("click", () => handleMinus(id));
-    button.addEventListener("touchstart", () => handleMinus(id));
-  });
 
-  plusButtons.forEach(button => {
-    const id = parseInt(button.id);
-    button.addEventListener("click", () => handlePlus(id));
-    button.addEventListener("touchstart", () => handlePlus(id));
-  });
+function buttonEvents(){
+    const minusButtons = document.querySelectorAll(".minusButton");
+    const plusButtons = document.querySelectorAll(".plusButton");
 
-  const handleMinus = (i) => {
-    if (dS[i] > 0) {
-      dS[i]--;
+    minusButtons.forEach(button => {
+      const id = parseInt(button.id);
+      button.addEventListener("mousedown", () => handleMinus(id)); // For desktop
+      button.addEventListener("touchstart", () => handleMinus(id)); // For touchscreen devices
+    });
+
+    plusButtons.forEach(button => {
+      const id = parseInt(button.id);
+      button.addEventListener("mousedown", () => handlePlus(id)); // For desktop
+      button.addEventListener("touchstart", () => handlePlus(id)); // For touchscreen devices
+    });
+
+    const handleMinus = (i) => {
+      if (dS[i] > 0) {
+        dS[i]--;
+        priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
+        calculate();
+      }
+    };
+
+    const handlePlus = (i) => {
+      dS[i]++;
       priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
       calculate();
-    }
-  };
-
-  const handlePlus = (i) => {
-    dS[i]++;
-    priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3]);
-    calculate();
-  };
-
+    };
+}
 
