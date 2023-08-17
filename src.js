@@ -21,10 +21,10 @@ function updateVariables() {
     totalPacks = 0
     maxValue = parseFloat(valueUSDInput.value) || 0;
     //maxPacks = parseInt(organicSoldInput.value) || 0;
-    priceMap[0].price = parseFloat(packPrice1Input.value) || 0;
-    priceMap[1].price = parseFloat(packPrice2Input.value) || 0;
-    priceMap[2].price = parseFloat(packPrice4Input.value) || 0;
-    priceMap[3].price = parseFloat(packPrice6Input.value) || 0;
+    priceMap[0].price = Number(parseFloat(packPrice1Input.value)) || 0;
+    priceMap[1].price = Number(parseFloat(packPrice2Input.value)) || 0;
+    priceMap[2].price = Number(parseFloat(packPrice4Input.value)) || 0;
+    priceMap[3].price = Number(parseFloat(packPrice6Input.value)) || 0;
 }
 
 // Get references to the button and result container
@@ -34,35 +34,48 @@ var resultContainer = document.getElementById("resultContainer");
 // Add a click event listener to the button
 generateButton.addEventListener("click", function() {
     calculate()
-    displayPriceMap(priceMap)
+    
 });
 
-var priceMap = [
-  { price: packPrice1Input.value, qty: 1, sold: 0 },
-  { price: packPrice2Input.value, qty: 2, sold: 0 },
-  { price: packPrice4Input.value, qty: 4, sold: 0 },
-  { price: packPrice6Input.value, qty: 6, sold: 0 },
-  ]
+var dS = [0,0,0,0]
+var priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3])
 
-var totalValue = 0
-var maxValue = valueUSDInput.value
+function defaultPriceMap(a,b,c,d){
+    return [
+      { price: packPrice1Input.value, qty: 1, sold: a },
+      { price: packPrice2Input.value, qty: 2, sold: b },
+      { price: packPrice4Input.value, qty: 4, sold: c },
+      { price: packPrice6Input.value, qty: 6, sold: d },
+    ]
+}
 
-var totalPacks = 0
-//var maxPacks = organicSoldInput.value * 6
+function sumPriceMap(){
+    var total = 0;
 
-function calculate(){
-    totalValue = 0
-    totalPacks = 0
-
-    while (totalValue < maxValue) {
-        var tmp = getRandomNumber(3)
-        
-        totalValue += Number(priceMap[tmp].price);
-        totalPacks += Number(priceMap[tmp].qty);
-        priceMap[tmp].sold += Number(priceMap[tmp].qty)
+    for (var i = 0; i < priceMap.length; i++) {
+        total += Number(priceMap[i].price) * Number(priceMap[i].sold);
     }
 
-    
+    return total;
+}
+
+var maxIter = 1000
+var iter = 0
+
+function calculate(){
+
+    while (sumPriceMap() < valueUSDInput.value && iter < maxIter) {
+        priceMap[getRandomNumber(3)].sold++ 
+
+        if(sumPriceMap() > valueUSDInput.value){
+            priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3])
+            iter++
+        }
+    }
+
+    iter = 0
+
+    displayPriceMap(priceMap)
 }
 
 function getRandomNumber(maxRange) {
@@ -74,25 +87,24 @@ function displayPriceMap(arrayOfObjects) {
     resultContainer.innerHTML = ""; // Clear previous content
 
     var totalPacksSold = 0;
-    var totalValue = 0;
 
     for (var i = 0; i < arrayOfObjects.length; i++) {
         var item = arrayOfObjects[i];
-        var itemQTY = item.sold/item.qty
-        var itemTotalValue = item.sold/item.qty * item.price
-        var itemText = item.qty + "-pack [ " 
-                     + itemQTY  + " ]"
-                     + " $" + itemTotalValue; // Format to two decimal places
+        var itemQTY = item.sold
+        var itemTotalValue = item.price * item.sold
+        var itemText = item.qty + "-PACK " + 
+                    "min_[ " + dS[i]  + " ] " +
+                    "TOTAL_[ " + itemQTY  + " ] " +
+                    "$" + itemTotalValue; // Format to two decimal places
         var itemElement = document.createElement("p");
         itemElement.textContent = itemText;
         resultContainer.appendChild(itemElement);
 
-        totalPacksSold += Number(item.sold/6);
-        totalValue += itemTotalValue;
+        totalPacksSold += Number(item.sold * item.qty / 6);
     }
 
-    var totalText = "Total Flats Sold: " + totalPacksSold.toFixed(2) 
-                  + ", Total Value: $" + totalValue.toFixed(2); // Format to two decimal places
+    var totalText = "Total 1/2 Flats Sold: " + totalPacksSold.toFixed(2) 
+                  + ", Total Value: $" + sumPriceMap().toFixed(2); // Format to two decimal places
     var totalElement = document.createElement("p");
     totalElement.textContent = totalText;
     resultContainer.appendChild(totalElement);
@@ -103,4 +115,26 @@ function displayPriceMap(arrayOfObjects) {
     }
 }
 
+const minusButtons = document.querySelectorAll(".minusButton");
+const plusButtons = document.querySelectorAll(".plusButton");
+
+minusButtons.forEach(button => {
+button.addEventListener("click", () => {
+  const input = button.id;
+  if (dS[input] > 0) {
+    dS[input]--
+    priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3])
+    calculate()
+  }
+});
+});
+
+plusButtons.forEach(button => {
+button.addEventListener("click", () => {
+  const input = button.id;
+    dS[input]++
+    priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3])
+    calculate()
+});
+});
 
