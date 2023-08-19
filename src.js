@@ -201,15 +201,11 @@ function displayPriceMap(arrayOfObjects) {
         row.appendChild(middleColumn);
 
         var itemHeader = document.createElement("h4");
-        itemHeader.textContent = item.qty + "-PACK" + " $" + item.price;
+        itemHeader.textContent = item.qty + "-PACK -> " + itemQTY;
         middleColumn.appendChild(itemHeader);
 
-        var unitInfo = document.createElement("h3");
-        unitInfo.innerHTML = itemQTY;
-        middleColumn.appendChild(unitInfo);
-
         var totalValueElement = document.createElement("p");
-        totalValueElement.textContent = "$" + itemTotalValue.toFixed(2);
+        totalValueElement.textContent = "$" + itemTotalValue.toFixed(2) + "total / " + " $" + item.price + " each";
         middleColumn.appendChild(totalValueElement);
 
         // Right column for blank space
