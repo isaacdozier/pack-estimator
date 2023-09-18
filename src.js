@@ -1,333 +1,224 @@
-var userAlert = false
 
-var countOrg
-var countCon
-var ratioOrg
+let testUsers = generateTestUsers(10);
 
-var sixPackConValue
-var fourPackConValue
+class TokenMiningSystem {
+    constructor() {
+      this.lastBlockID     = 0
+      this.currentBlockID  = 1
 
-var sixPackOrgValue
-var fourPackOrgValue
+      this.blocksMined     = 0;
+      this.nowTokens       = 0;
+      this.rewardInterval  = 31558149.756 / 3
 
-var sixPackCon = document.getElementById('sixPackCon');
-var fourPackCon = document.getElementById('fourPackCon');
+      this.globalHalving   = 1
+      this.blockHalving    = 2   / this.globalHalving
+      this.difficultyValue = 100 / this.globalHalving;
 
-var sixPackOrg = document.getElementById('sixPackOrg');
-var fourPackOrg = document.getElementById('fourPackOrg');
+      this.rewardMin       = 0.01
+      this.reward          = 1
+      this.rewardBonus     = 0
+    }
 
-// Get references to the input elements
-var valueUSDInput = document.getElementById('valueUSD');
-var grossValue = valueUSDInput.value;
+    mine(userID) {
+        const target    = this.getRandomNumber(0, this.difficultyValue);
+        const userGuess = this.getRandomNumber(0, this.difficultyValue);
+        const user      = testUsers.find(user => user.ID === userID);
 
-//var organicSoldInput = document.getElementById('organicSold');
-var packPrice1Input = document.getElementById('packPrice1');
-var packPrice2Input = document.getElementById('packPrice2');
-var packPrice4Input = document.getElementById('packPrice4');
-var packPrice6Input = document.getElementById('packPrice6');
-var packPrice12Input = document.getElementById('packPrice12');
+        // regular updates
+        this.update1()
 
+        // periodic updates
+        this.update2()
 
-// Add event listeners to update variables when input values change
-valueUSDInput.addEventListener('input', updateVariables);
-//organicSoldInput.addEventListener('input', updateVariables);
-packPrice1Input.addEventListener('input', updateVariables);
-packPrice2Input.addEventListener('input', updateVariables);
-packPrice4Input.addEventListener('input', updateVariables);
-packPrice6Input.addEventListener('input', updateVariables);
-packPrice12Input.addEventListener('input', updateVariables);
+        // Normal reward conditions
+        if (userGuess === target) {
+            user.balance     = (Number(user.balance) + Number(this.reward)).toFixed(2);
+        } else 
+        // Bonus reward accumulation
+        {
+            this.rewardBonus = (Number(this.rewardBonus) + Number(this.reward)).toFixed(2);
+        }
 
-sixPackCon.addEventListener('input', updateVariables);
-fourPackCon.addEventListener('input', updateVariables);
+        // Bonus Reward Conditions
+        if(userGuess === target && this.reward === this.safeNum(this.rewardMin)){
+            user.balance     = (Number(user.balance) + Number(this.rewardBonus)).toFixed(2);
+            this.rewardBonus = 0
+        }
 
-sixPackOrg.addEventListener('input', updateVariables);
-fourPackOrg.addEventListener('input', updateVariables);
+        // Track user and bonus tokens
+        this.nowTokens       = (Number(this.nowTokens) + Number(this.reward)).toFixed(2);
 
-// Function to update variables
-function updateVariables() {
-    // Update the variables with the new input values
-    totalValue = 0;
-    totalPacks = 0;
-    grossValue = parseFloat(valueUSDInput.value) || 0;
+        // Increase BlocksHalving each time contract is called
+        this.blockHalving   *= 2
+    }
 
-    sixPackConValue = parseFloat(sixPackCon.value) || 0;
-    fourPackConValue = parseFloat(fourPackCon.value) || 0;
+    blockIDCheck(){
+        return this.currentBlockID > this.lastBlockID;
+    }
+
+    rewardCheck(){
+        return this.reward <= this.rewardMin;
+    }
+
+    update1(){
+        if(this.blockIDCheck() && this.rewardCheck()){
+            this.blockHalving = 2
+        }
+
+        if(this.blockIDCheck()){
+            this.blocksMined++
+        }
+
+        this.reward = 1 / this.blockHalving
+
+        // Set reward Minimum (0.00000001)
+        if(this.reward < this.rewardMin){
+            this.reward = this.safeNum(this.rewardMin)
+        }
+    }
+
+    update2(){
+        if(this.nowTokens > this.rewardInterval){
+            this.rewardInterval *= 2
+            this.globalHalving /= 2
+            this.blockHalving = this.globalHalving * 2
+        }
+    }
+
+    isMinReward(){
+        return this.reward === this.rewardMin
+    }
     
-    sixPackOrgValue = parseFloat(sixPackOrg.value) || 0;
-    fourPackOrgValue = parseFloat(fourPackOrg.value) || 0;
+    getRandomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+  
+    updateBlockID(id) {
+      this.lastBlockID = this.currentBlockID
+      this.currentBlockID = id
+    }
+
+    safeNum(num){
+        return (Number(num)).toFixed(2)
+    }
+}
+  
+const miningSystem = new TokenMiningSystem();
+
+let blockInterval = 1;
+let userInterval = 1
+
+const tokensMined = document.getElementById("tokenAllocations");
+const currentReward = document.getElementById("reward");
+const currentBonus = document.getElementById("bonus");
+const nextHalving = document.getElementById("nextHalving");
+const blocksMined = document.getElementById("blocksMined");
+const blockChance = document.getElementById("blockChance");
+const stopButton = document.getElementById("stopButton");
+  
+const blockTime = setInterval(() => {
+    if (blockInterval < 0) {
+        clearInterval(blockInterval);
+        return;
+    }
+
     
-    priceMap[0].price = Number(parseFloat(packPrice1Input.value)) || 0;
-    priceMap[1].price = Number(parseFloat(packPrice2Input.value)) || 0;
-    priceMap[2].price = Number(parseFloat(packPrice4Input.value)) || 0;
-    priceMap[3].price = Number(parseFloat(packPrice6Input.value)) || 0;
-    priceMap[4].price = Number(parseFloat(packPrice12Input.value)) || 0;
-}
+    nextHalving.textContent = miningSystem.halvingInterval
+    blocksMined.textContent = miningSystem.blocksMined
 
-// Get references to the button and result container
-var generateButton = document.getElementById("generate");
-var resultContainer = document.getElementById("resultContainer");
+    displayBalances(testUsers);
+    next = randomNum(0,30)
 
-// Add a click event listener to the button
-generateButton.addEventListener("click", function() {
-    countCon = parseFloat(sixPackConValue) + parseFloat(fourPackConValue) / 6
-    countOrg = parseFloat(sixPackOrgValue) + parseFloat(fourPackOrgValue) / 6
+    //console.log(blockInterval)
 
-    ratioOrg = countOrg / (countCon + countOrg)
+    blockInterval++;
+}, 300);
 
-    dS = [0,0,0,0,0]
-    userAlert = false
-    clearError()
-    calculate()
-    toggleInputRows()
-    addToggle()
-});
-
-var dS = [0,0,0,0,0]
-var priceMap = defaultPriceMap(dS[0],dS[1],dS[2],dS[3],dS[4])
-
-function defaultPriceMap(a,b,c,d,e){
-    return [
-      { price: packPrice1Input.value, qty: 1, sold: a },
-      { price: packPrice2Input.value, qty: 2, sold: b },
-      { price: packPrice4Input.value, qty: 4, sold: c },
-      { price: packPrice6Input.value, qty: 6, sold: d },
-      { price: packPrice12Input.value, qty: 12, sold: e }
-    ]
-}
-
-function sumPriceMap(){
-    var total = 0;
-
-    for (var i = 0; i < priceMap.length; i++) {
-        total += Number(priceMap[i].price) * Number(priceMap[i].sold);
+var next = randomNum(0,1000)
+const userInput = setInterval(() => {
+    if (userInterval < 0) {
+        clearInterval(userInterval);
+        next = randomNum(0,100)
+        return;
     }
 
-    return total;
+    const userIndex = randomNum(0, testUsers.length - 1); // Ensure index is within the range of testData
+    const user = testUsers[userIndex];
+
+    miningSystem.updateBlockID(blockInterval);
+    miningSystem.mine(user.ID);
+
+    currentReward.textContent = miningSystem.reward
+    currentBonus.textContent = miningSystem.rewardBonus
+    tokensMined.textContent = miningSystem.nowTokens
+
+    //console.log(miningSystem.reward)
+
+    userInterval++;
+    
+}, 70);
+
+function randomNum(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-var maxIter = 10000
-var iter = 0
+function generateTestUsers(numEntries) {
+    const Data = [];
+    const usedUserIDs = new Set(); // To ensure unique user IDs
 
-function calculate() {
-    // Reset all priceMap[].sold to 0
-    for (var i = 0; i < priceMap.length; i++) {
-        priceMap[i].sold = 0;
+    for (let i = 0; i < numEntries; i++) {
+        const ID = generateUniqueUserID(usedUserIDs);
+        const balance = 0
+
+        Data.push({ ID, balance});
     }
 
-    for (var i = 0; i < dS.length; i++) {
-        if (dS[i] !== 0) {
-            priceMap[i].sold = dS[i]; // Apply dS value to priceMap if not 0
-        }
+    return Data;
+}
+
+function generateTestData(testUsers, numEntries) {
+    const Data = [];
+
+    for (let i = 0; i < numEntries; i++) {
+        const randomIndex = Math.floor(Math.random() * testUsers.length);
+        const user = testUsers[randomIndex];
+        const ID = user.ID;
+        const Guess = Math.floor(Math.random() * 10) + 1; 
+
+        Data.push({ ID, Guess});
     }
 
-    iter = 0; // Reset the iteration count
+    return Data;
+}
 
-    const targetValue = Math.round(grossValue * ratioOrg);
-    const allowedDifference = 0; // Set your desired range here
+function generateUniqueUserID(usedUserIDs) {
+    let userID;
+    do {
+        userID = getRandomString(2); // Generate a random string of length 6
+    } while (usedUserIDs.has(userID));
 
-    while (Math.abs(sumPriceMap() - targetValue) > allowedDifference && iter < maxIter) {
-        var randomIndex = getRandomNumber(4);
+    usedUserIDs.add(userID);
+    return userID;
+}
 
-        if (dS[randomIndex] === 0) {
-            priceMap[randomIndex].sold++;
-        }
-
-        iter++; // Increment the iteration count
-
-        if (sumPriceMap() > targetValue) {
-            priceMap = defaultPriceMap(dS[0], dS[1], dS[2], dS[3], dS[4]);
-        }
+function getRandomString(length) {
+    const characters = 'abcdefg';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        result += characters.charAt(randomIndex);
     }
+    return result;
+}
 
+function displayBalances(testUsers) {
+    const balanceContainer = document.getElementById("balanceContainer");
+    balanceContainer.innerHTML = ''; // Clear existing content
 
-
-    //console.log(iter)
-
-    if(iter === maxIter || iter === 0){
-        displayError("Warning: Pack counts do not match desired value")
+    for (let i = 0; i < testUsers.length; i++) {
+        const user = testUsers[i];
+        const userElement = document.createElement("p");
+        userElement.textContent = `User ${user.ID}: Balance - ${user.balance}`;
+        balanceContainer.appendChild(userElement);
     }
-
-    iter = 0;
-
-    displayPriceMap(priceMap);
-}
-
-
-
-
-function getRandomNumber(maxRange) {
-    return Math.floor(Math.random() * (maxRange + 1));
-}
-
-function displayPriceMap(arrayOfObjects) {
-    var resultContainer = document.getElementById("resultContainer");
-    resultContainer.innerHTML = ""; // Clear previous content
-
-    var totalPacksSold = 0;
-
-    for (var i = 0; i < arrayOfObjects.length; i++) {
-        var item = arrayOfObjects[i];
-        var itemQTY = item.sold;
-        var itemTotalValue = item.price * item.sold;
-
-        var itemElement = document.createElement("div");
-        itemElement.classList.add("mb-3", "p-3", "bg-light", "rounded"); // Bootstrap classes
-
-        // Create a row
-        var row = document.createElement("div");
-        row.classList.add("row", "align-items-center"); // Center align items vertically
-        itemElement.appendChild(row);
-
-        // Left column for buttons
-        var leftColumn = document.createElement("div");
-        leftColumn.classList.add("col-md-3", "col-12", "text-center", "mb-2", "mb-md-0");
-        row.appendChild(leftColumn);
-
-        var minusButton = document.createElement("button");
-        minusButton.textContent = "-1";
-        minusButton.classList.add("btn", "btn-danger", "minusButton");
-        minusButton.id = i.toString();
-        leftColumn.appendChild(minusButton);
-
-        var plusButton = document.createElement("button");
-        plusButton.textContent = "+1";
-        plusButton.classList.add("btn", "btn-success", "plusButton");
-        plusButton.id = i.toString();
-        leftColumn.appendChild(plusButton);
-
-        // Middle column for item details
-        var middleColumn = document.createElement("div");
-        middleColumn.classList.add("col-md-6", "col-12", "text-center", "mb-2", "mb-md-0");
-        row.appendChild(middleColumn);
-
-        var itemHeader = document.createElement("h4");
-        itemHeader.textContent = item.qty + "-PACK -> " + itemQTY;
-        middleColumn.appendChild(itemHeader);
-
-        var totalValueElement = document.createElement("p");
-        totalValueElement.textContent = "$" + itemTotalValue.toFixed(2) + "total / " + " $" + item.price + " each";
-        middleColumn.appendChild(totalValueElement);
-
-        // Right column for blank space
-        var rightColumn = document.createElement("div");
-        rightColumn.classList.add("col-md-3", "col-12");
-        row.appendChild(rightColumn);
-
-        resultContainer.appendChild(itemElement);
-
-        totalPacksSold += Number(item.sold * item.qty / 6);
-    }
-
-    var totalText = "Result/Expected: " + totalPacksSold.toFixed(2) 
-                  + " - " + countOrg.toFixed(2)
-                  + " / " 
-                  + "$" + sumPriceMap().toFixed(0)
-                  + " - $" + (grossValue*ratioOrg).toFixed(0)
-    var totalElement = document.createElement("p");
-    totalElement.classList.add("mt-4"); // Add margin top
-    totalElement.textContent = totalText;
-    resultContainer.appendChild(totalElement);
-
-    buttonEvents();
-}
-
-
-
-function buttonEvents() {
-    const handleMinus = (i) => {
-        if (priceMap[i].sold > 0) {
-            dS[i] = priceMap[i].sold - 1;
-            calculate();
-        }
-    };
-
-    const handlePlus = (i) => {
-        dS[i] = priceMap[i].sold + 1;
-        calculate();
-    };
-
-    const minusButtons = document.querySelectorAll(".minusButton");
-    const plusButtons = document.querySelectorAll(".plusButton");
-
-    minusButtons.forEach(button => {
-        const id = parseInt(button.id);
-        button.addEventListener("click", () => handleMinus(id));
-        button.addEventListener("touchstart", (event) => {
-            event.preventDefault();
-            handleMinus(id);
-        });
-        button.addEventListener("touchend", (event) => {
-            event.preventDefault();
-        });
-    });
-
-    plusButtons.forEach(button => {
-        const id = parseInt(button.id);
-        button.addEventListener("click", () => handlePlus(id));
-        button.addEventListener("touchstart", (event) => {
-            event.preventDefault();
-            handlePlus(id);
-        });
-        button.addEventListener("touchend", (event) => {
-            event.preventDefault();
-        });
-    });
-}
-
-
-
-// Get references to the button and input rows
-var toggleButton = document.getElementById("toggleButton");
-var inputRows = document.getElementById("inputContainer");
-
-// Function to toggle the visibility of the input rows
-function toggleInputRows() {
-  if (inputRows.style.display === "none") {
-    inputRows.style.display = "block";
-  } else {
-    inputRows.style.display = "none";
-  }
-}
-
-
-
-function addToggle() {
-    // Create the "Switch" button
-    var toggleButton = document.createElement("button");
-    toggleButton.id = "toggleButton";
-    toggleButton.classList.add("btn", "btn-primary");
-    toggleButton.textContent = "Switch";
-
-    // Add a click event listener to the button
-    toggleButton.addEventListener("click", function() {
-        // Your code to toggle or perform any action
-    });
-
-    // Get the button container element
-    var buttonContainer = document.getElementById("buttonContainer");
-
-    // Clear any existing content and append the button
-    buttonContainer.innerHTML = "";
-    buttonContainer.appendChild(toggleButton);
-
-    // Add a click event listener to the button that toggles the input rows
-toggleButton.addEventListener("click", toggleInputRows);
-}
-
-updateVariables()
-
-function displayError(message) {
-    if(!userAlert){
-        var errorContainer = document.getElementById("errorContainer");
-        errorContainer.textContent = message;
-
-        alert(message);
-
-        userAlert = true
-    }
-}
-
-function clearError() {
-    var errorContainer = document.getElementById("errorContainer");
-    errorContainer.textContent = '';
 }
